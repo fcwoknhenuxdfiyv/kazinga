@@ -1,0 +1,47 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  Version:
+    sh: cat VERSION
+  GoFlags: -ldflags="-X main.version={{.Version}}"
+
+tasks:
+  build:
+    cmds:
+      - go build {{.GoFlags}}
+    silent: true
+
+  run:
+    cmds:
+      - go build {{.GoFlags}} && ./kazinga -dims 1x1:1,1,1,1
+
+  test:
+    cmds:
+      - go test ./...
+    silent: true
+
+  install:
+    cmds:
+      - go install {{.GoFlags}}
+    silent: true
+
+  cover:
+    cmds:
+      - go test -coverprofile=.c.out ./... && go tool cover -html=.c.out
+    silent: true
+
+  untag:
+    cmds:
+      - git push --delete origin "v{{.Version}}"
+      - git tag -d "v{{.Version}}"
+
+  release:
+    cmds:
+      - task: build
+      - git commit -a
+      - git push origin
+      - git tag "v{{.Version}}"
+      - git push origin "v{{.Version}}"
+
